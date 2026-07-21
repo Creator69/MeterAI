@@ -1,0 +1,16 @@
+{
+  "name": "meterai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pay-per-call USDC monetization middleware for the agent economy, settled on Arc.",
+  "scripts": {
+    "dev:services": "node middleware/demo-services.js",
+    "dev:agent": "node demo-agent/agent.js",
+    "dev:dashboard": "cd dashboard && npm run dev"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "uuid": "^9.0.1",
+    "better-sqlite3": "^11.3.0"
+  }
+}

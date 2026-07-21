@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>MeterAI — Provider Dashboard</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, sans-serif; background: #0b0e14; color: #e6e6e6; margin: 0; padding: 40px; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  p.sub { color: #8a93a6; margin-top: 0; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .card { background: #131722; border-radius: 10px; padding: 20px; }
+  .card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #8a93a6; margin: 0 0 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #1e2330; }
+  th { color: #8a93a6; font-weight: 500; }
+  .full { grid-column: 1 / -1; }
+  .mono { font-family: ui-monospace, monospace; font-size: 12px; color: #8a93a6; }
+</style>
+</head>
+<body>
+  <h1>MeterAI Provider Dashboard</h1>
+  <p class="sub">Live USDC earnings, call volume, and consumer analytics — polling every 3s</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Earnings by Service</h2>
+      <table id="byService"><thead><tr><th>Service</th><th>Calls</th><th>Earnings (USDC)</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Spend by Consumer Agent</h2>
+      <table id="byConsumer"><thead><tr><th>Agent Wallet</th><th>Calls</th><th>Spent (USDC)</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="card full">
+      <h2>Recent Calls</h2>
+      <table id="recent"><thead><tr><th>Time</th><th>Service</th><th>Payer</th><th>Amount</th><th>Tx Ref</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+<script>
+async function refresh() {
+  const res = await fetch('/dashboard/api/summary');
+  const data = await res.json();
+
+  const bs = document.querySelector('#byService tbody');
+  bs.innerHTML = data.byService.map(r => `<tr><td>${r.serviceId}</td><td>${r.calls}</td><td>${r.earningsUsdc.toFixed(4)}</td></tr>`).join('') || '<tr><td colspan=3>No calls yet</td></tr>';
+
+  const bc = document.querySelector('#byConsumer tbody');
+  bc.innerHTML = data.byConsumer.map(r => `<tr><td class="mono">${r.payer}</td><td>${r.calls}</td><td>${r.spentUsdc.toFixed(4)}</td></tr>`).join('') || '<tr><td colspan=3>No calls yet</td></tr>';
+
+  const rc = document.querySelector('#recent tbody');
+  rc.innerHTML = data.recentCalls.map(r => `<tr><td>${new Date(r.timestamp).toLocaleTimeString()}</td><td>${r.serviceId}</td><td class="mono">${r.payer}</td><td>${r.amountUsdc}</td><td class="mono">${r.txRef}</td></tr>`).join('') || '<tr><td colspan=5>No calls yet</td></tr>';
+}
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
