@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MeterAI — pay-per-call USDC for the agent economy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14171c;
+    --ink-soft: #4b5158;
+    --muted: #868c94;
+    --paper: #fafaf7;
+    --paper-shadow: #e7e6df;
+    --line: #d8d7cf;
+    --stamp: #c23b22;
+    --stamp-soft: #f3d9d1;
+    --backdrop: #eceae2;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--backdrop);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 56px 20px 100px; }
+
+  .receipt {
+    background: var(--paper);
+    box-shadow: 0 1px 0 var(--paper-shadow), 0 24px 60px -30px rgba(20,23,28,0.35);
+    padding: 44px 40px 40px;
+    position: relative;
+  }
+  .receipt::before, .receipt::after {
+    content: "";
+    position: absolute; left: 0; right: 0; height: 10px;
+    background:
+      radial-gradient(circle at 10px 5px, var(--backdrop) 5px, transparent 5.5px) repeat-x;
+    background-size: 20px 10px;
+  }
+  .receipt::before { top: -5px; }
+  .receipt::after  { bottom: -5px; transform: rotate(180deg); }
+
+  .eyebrow {
+    font-size: 11px; letter-spacing: 0.16em; color: var(--muted);
+    text-transform: uppercase; margin: 0 0 18px;
+  }
+  h1.brand {
+    font-family: 'Archivo', sans-serif; font-weight: 900;
+    font-size: clamp(40px, 8vw, 58px); letter-spacing: -0.01em;
+    margin: 0 0 6px; line-height: 0.95;
+  }
+  .tagline { color: var(--ink-soft); font-size: 15px; margin: 0 0 30px; max-width: 46ch; }
+
+  /* Ticking receipt line-item animation */
+  .tape { border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); padding: 18px 0; margin-bottom: 22px; }
+  .tape-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding: 5px 0; opacity: 0; transform: translateY(4px); animation: printIn 0.35s ease forwards; }
+  .tape-row .k { color: var(--ink); }
+  .tape-row .v { color: var(--muted); white-space: nowrap; }
+  .tape-row:nth-child(1) { animation-delay: 0.1s; }
+  .tape-row:nth-child(2) { animation-delay: 0.55s; }
+  .tape-row:nth-child(3) { animation-delay: 1.0s; }
+  .tape-row:nth-child(4) { animation-delay: 1.45s; }
+  @keyframes printIn { to { opacity: 1; transform: translateY(0); } }
+
+  .total-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 4px; opacity: 0; animation: printIn 0.4s ease forwards; animation-delay: 1.95s; }
+  .total-row .label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .total-row .amount { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 30px; }
+
+  .stamp {
+    display: inline-block; border: 2px solid var(--stamp); color: var(--stamp);
+    font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 13px; letter-spacing: 0.12em;
+    padding: 6px 14px; margin-top: 20px; transform: rotate(-4deg) scale(0.9);
+    opacity: 0; animation: stampIn 0.3s ease forwards; animation-delay: 2.3s;
+  }
+  @keyframes stampIn { to { opacity: 1; transform: rotate(-4deg) scale(1); } }
+
+  .ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+  .btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600;
+    text-decoration: none; padding: 11px 18px; border: 1px solid var(--ink);
+    color: var(--ink); transition: background 0.15s, color 0.15s;
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn.primary { background: var(--ink); color: var(--paper); }
+  .btn.primary:hover { background: var(--stamp); border-color: var(--stamp); }
+
+  section { margin-top: 64px; }
+  .section-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 22px; }
+  .section-num { color: var(--muted); font-size: 12px; }
+  h2 { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 20px; margin: 0; }
+
+  .ledger { background: var(--paper); box-shadow: 0 1px 0 var(--paper-shadow); }
+  .ledger-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 6px 16px;
+    padding: 16px 22px; border-bottom: 1px dashed var(--line);
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-row .item { font-size: 14px; }
+  .ledger-row .note { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .ledger-row .status { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; align-self: start; }
+  .status.void { color: var(--stamp); }
+  .status.ok { color: #2f7a4f; }
+
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 640px) { .flow { grid-template-columns: 1fr 1fr; } }
+  .flow-step { background: var(--paper); box-shadow: 0 1px 0 var(--paper-shadow); padding: 16px 14px; }
+  .flow-step .n { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 20px; color: var(--stamp); }
+  .flow-step p { font-size: 12px; color: var(--ink-soft); margin: 8px 0 0; line-height: 1.4; }
+
+  .stack-table { width: 100%; border-collapse: collapse; background: var(--paper); box-shadow: 0 1px 0 var(--paper-shadow); }
+  .stack-table td { padding: 13px 20px; border-bottom: 1px dashed var(--line); font-size: 13px; vertical-align: top; }
+  .stack-table tr:last-child td { border-bottom: none; }
+  .stack-table td.name { font-weight: 600; white-space: nowrap; width: 1%; }
+  .stack-table td.desc { color: var(--muted); }
+
+  .shot { margin-top: 22px; }
+  .shot img { width: 100%; display: block; box-shadow: 0 1px 0 var(--paper-shadow), 0 20px 40px -24px rgba(20,23,28,0.4); }
+  .shot-caption { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  footer { margin-top: 80px; padding-top: 24px; border-top: 1px dashed var(--line); font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="receipt">
+    <p class="eyebrow">Build on Arc &middot; Agentic Economy Track</p>
+    <h1 class="brand">MeterAI</h1>
+    <p class="tagline">Pay-per-call USDC monetization for the agent economy — no API keys, no subscriptions, no invoices. Just an HTTP 402 and a nanopayment on Arc.</p>
+
+    <div class="tape" id="tape">
+      <div class="tape-row"><span class="k">GET /v1/inference/sentiment</span><span class="v">402 Payment Required</span></div>
+      <div class="tape-row"><span class="k">Agent wallet authorizes nanopayment</span><span class="v">0.002 USDC</span></div>
+      <div class="tape-row"><span class="k">Settled on Arc</span><span class="v">sub-second finality</span></div>
+      <div class="tape-row"><span class="k">Retry with proof</span><span class="v">200 OK</span></div>
+    </div>
+    <div class="total-row">
+      <span class="label">Settled this call</span>
+      <span class="amount">$0.002 USDC</span>
+    </div>
+    <div class="stamp">PAID &middot; ZERO HUMANS INVOLVED</div>
+
+    <div class="ctas">
+      <a class="btn primary" href="https://github.com/REPLACE_WITH_YOUR_USERNAME/meterai">View the repo →</a>
+      <a class="btn" href="#how-it-works">How it works</a>
+      <a class="btn" href="#dashboard">See the dashboard</a>
+    </div>
+  </div>
+
+  <section id="problem">
+    <div class="section-head"><span class="section-num">01</span><h2>Why agents can't pay for APIs today</h2></div>
+    <div class="ledger">
+      <div class="ledger-row">
+        <span class="item">Subscription + credit card signup</span>
+        <span class="status void">Void</span>
+        <span class="note">Assumes a human fills out a form. Agents can't.</span>
+      </div>
+      <div class="ledger-row">
+        <span class="item">Fixed monthly pricing tier</span>
+        <span class="status void">Void</span>
+        <span class="note">An agent needs 14 calls today, not a $49/mo plan.</span>
+      </div>
+      <div class="ledger-row">
+        <span class="item">Pre-established trust / manual API key</span>
+        <span class="status void">Void</span>
+        <span class="note">Providers can't safely serve anonymous agents without it.</span>
+      </div>
+      <div class="ledger-row">
+        <span class="item">HTTP 402 + USDC nanopayment on Arc</span>
+        <span class="status ok">Settled</span>
+        <span class="note">Exact usage, exact price, paid and verified per request.</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="section-head"><span class="section-num">02</span><h2>How it works</h2></div>
+    <div class="flow">
+      <div class="flow-step"><div class="n">1</div><p>Provider wraps an endpoint with MeterAI and sets a USDC price per call.</p></div>
+      <div class="flow-step"><div class="n">2</div><p>Agent requests it unpaid, gets back HTTP 402 with the price.</p></div>
+      <div class="flow-step"><div class="n">3</div><p>Agent's wallet authorizes a USDC nanopayment on Arc, gas-sponsored by Paymaster.</p></div>
+      <div class="flow-step"><div class="n">4</div><p>Agent retries with payment proof, gets served — no human anywhere in the loop.</p></div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="section-head"><span class="section-num">03</span><h2>Circle + Arc stack usage</h2></div>
+    <table class="stack-table">
+      <tr><td class="name">Arc</td><td class="desc">Settlement layer — USDC-denominated gas, sub-second finality</td></tr>
+      <tr><td class="name">USDC</td><td class="desc">Unit of account and settlement asset for every metered call</td></tr>
+      <tr><td class="name">Nanopayments</td><td class="desc">Core primitive for sub-cent, per-request charges</td></tr>
+      <tr><td class="name">Agent Stack + Wallets</td><td class="desc">Agent-side wallet, payment authorization, spend-policy enforcement</td></tr>
+      <tr><td class="name">Paymaster</td><td class="desc">Gas abstraction — agents only ever think in USDC</td></tr>
+      <tr><td class="name">App Kits</td><td class="desc">Provider payout and treasury flows</td></tr>
+    </table>
+  </section>
+
+  <section id="dashboard">
+    <div class="section-head"><span class="section-num">04</span><h2>Provider dashboard</h2></div>
+    <p class="tagline" style="margin-bottom:0;">A real run: the demo agent discovering, paying for, and consuming both metered endpoints — captured live from the local dashboard.</p>
+    <div class="shot">
+      <img src="dashboard-screenshot.png" alt="MeterAI provider dashboard showing live USDC earnings by service, spend by consumer agent, and a recent call log" />
+      <p class="shot-caption">Live screenshot — earnings by service, spend by consumer agent, recent settled calls. Run it yourself: <code>npm install &amp;&amp; npm run dev:services</code>, then <code>npm run dev:agent</code>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>MeterAI &middot; Checkpoint 2 &middot; Build on Arc, Agentic Economy Track</span>
+    <span><a href="https://github.com/REPLACE_WITH_YOUR_USERNAME/meterai" style="color:inherit;">github.com/REPLACE_WITH_YOUR_USERNAME/meterai</a></span>
+  </footer>
+
+</div>
+</body>
+</html>
